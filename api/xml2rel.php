@@ -43,12 +43,12 @@ $log = '';
 $negritos = array();
 while($xml->Styles->Style[$r] != null)
 {
-  if($xml->Styles->Style[$r]->attributes()[sssID]){
-    $estiloId = $xml->Styles->Style[$r]->attributes()[sssID];
+  if($xml->Styles->Style[$r]->attributes()['sssID']){
+    $estiloId = $xml->Styles->Style[$r]->attributes()['sssID'];
     $bold = 0;
-    if(isset($xml->Styles->Style[$r]->Font->attributes()[sssBold]))
+    if(isset($xml->Styles->Style[$r]->Font->attributes()['sssBold']))
     {
-      $bold = $xml->Styles->Style[$r]->Font->attributes()[sssBold];
+      $bold = $xml->Styles->Style[$r]->Font->attributes()['sssBold'];
     }
   if($bold) $negritos[] = ''.$estiloId;
   if($dbg)  $log .= '
