@@ -157,4 +157,60 @@ print_r($xml->Worksheet->Table->Row[8]->attributes()['sssIndex'][0]);
 }
 //https://drive.google.com/uc?export=download&id=1HTMkJEAtbqG7fWHmEdQ_yKgVVhWldECF //nao esta deixando baixar direto, considera ameaca
 //https://drive.google.com/file/d/1HTMkJEAtbqG7fWHmEdQ_yKgVVhWldECF/view?usp=sharing
-?><a href="https://1drv.ms/u/s!ApVG5zwTAUQ5gQJWAlXghwclotaS?e=ZVaTxi" target="_blank">Exemplo de XML (abrir no EXCEL, pode alterar a extensão para xls, para facilitar a abertura, caso desejar)</a>
+?>
+<style>
+  body{ font-family: arial; }
+  .file, #fname {
+        width: 400px;
+        height: 50px;
+        background: #fff;
+        padding: 4px;
+        border: 1px dashed #333;
+        position: relative;
+        cursor: pointer;
+    }
+
+    .file::before {
+        content: '';
+        position: absolute;
+        background: #fff;
+        font-size: 20px;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 100%;
+        height: 100%;
+    }
+
+    .file::after {
+        content: 'Arraste aqui o arquivo XML';
+        position: absolute;
+        color: #000;
+        font-size: 20px;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+</style>  
+<a href="https://1drv.ms/u/s!ApVG5zwTAUQ5gQJWAlXghwclotaS?e=ZVaTxi" target="_blank">Exemplo de XML (abrir no EXCEL, pode alterar a extensão para xls, para facilitar a abertura, caso desejar)</a>
+<form enctype="multipart/form-data" method="post">
+<div>
+<input name="userfile" type="file" name="file" id="userfile" class="file">
+<span id="fname" style="display:none"></span>
+</div>
+	<br>
+<input type="submit">
+</form>
+<script>
+  window.onload=function(){
+let file = document.getElementById('userfile');
+file.addEventListener('change', function() {
+    if(file && file.value) {
+        let val = file.files[0].name;
+        document.getElementById('fname').innerHTML = "Arquivo selecionado: " + val;
+			  document.getElementById('fname').style.display = 'block';
+    }
+	//alert(val)
+});
+}
+</script>  
