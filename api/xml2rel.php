@@ -193,6 +193,7 @@ print_r($xml->Worksheet->Table->Row[8]->attributes()['sssIndex'][0]);
     }
 </style>  
 <a href="https://1drv.ms/u/s!ApVG5zwTAUQ5gQJWAlXghwclotaS?e=ZVaTxi" target="_blank">Exemplo de XML (abrir no EXCEL, pode alterar a extensão para xls, para facilitar a abertura, caso desejar)</a>
+<br><br>
 <form enctype="multipart/form-data" method="post">
 <div>
 <input name="userfile" type="file" name="file" id="userfile" class="file">
