@@ -1,3 +1,4 @@
+<style> body { font-family: arial; }</style>
 <?php
 if(isset($_POST['query'])) 
 {
@@ -25,7 +26,7 @@ $arr = null;
 }
 
 if(isset($ncode)) { ?>
-<style> body { font-family: arial; }</style>
+
 <label>CAMPOS ENCONTRADOS:</label>
 <textarea id="result" style="width:100%; height:600px;font-family:Courier New"><?php echo $ncode; ?></textarea>
 <input type="button" value="COPIAR" onclick="jQuery('#result').select();document.execCommand('copy');">
