@@ -4,18 +4,6 @@
 if(isset($_POST['query'])) 
 {
     
-$str = $_POST['query'];
-    
-$obj = new SQLFormatter;
-$sql = $obj->format($str,6);
-$asql = explode("\n",$sql);
-
-foreach ($asql as $item){
-    $aout[] = "  ' ".$item." '";
-}
-$sql = "  g_SqlText := \n".implode(" + \n",$aout).";" ;
-echo $out;
-
 class SQLFormatter {
   public $sep = '~::~';
 
@@ -142,7 +130,19 @@ class SQLFormatter {
 
 if (isset($_ENV['EXPORTS']) && $_ENV['EXPORTS'] !== 'false') {
   $module->exports = new SQLFormatter;
-}    
+}
+    
+$str = $_POST['query'];
+    
+$obj = new SQLFormatter;
+$sql = $obj->format($str,6);
+$asql = explode("\n",$sql);
+
+foreach ($asql as $item){
+    $aout[] = "  ' ".$item." '";
+}
+$sql = "  g_SqlText := \n".implode(" + \n",$aout).";" ;
+echo $out;
 /*
 //echo $sql;
 $sql = str_replace(',',"\r\n,",$sql);
