@@ -2,7 +2,7 @@
 
 function object2array($object) { return @json_decode(@json_encode($object),1); }
 
-$_FILES['userfile']['tmp_name'] = 'TPL REL.xml';
+//$_FILES['userfile']['tmp_name'] = 'TPL REL.xml';
 //echo file_get_contents($_FILES['userfile']['tmp_name']);
 //exit;
 if(isset($_FILES['userfile'])) 
