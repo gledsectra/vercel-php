@@ -142,7 +142,7 @@ foreach ($asql as $item){
     $aout[] = "  ' ".$item." '";
 }
 $sql = "  g_SqlText := \n".implode(" + \n",$aout).";" ;
-echo $out;
+//echo $out;
 /*
 //echo $sql;
 $sql = str_replace(',',"\r\n,",$sql);
