@@ -133,9 +133,9 @@ if (isset($_ENV['EXPORTS']) && $_ENV['EXPORTS'] !== 'false') {
 }
     
 $str = $_POST['query'];
-if(strstr($sql,'  g_SqlText := '))
+if(strstr($str,'  g_SqlText := '))
 {
-    $asql = explode("\n",$sql);
+    $asql = explode("\n",$str);
     foreach ($asql as $item)
     {
       $out = $item;  
