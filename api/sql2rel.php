@@ -133,15 +133,32 @@ if (isset($_ENV['EXPORTS']) && $_ENV['EXPORTS'] !== 'false') {
 }
     
 $str = $_POST['query'];
-    
-$obj = new SQLFormatter;
-$sql = $obj->format($str,6);
-$asql = explode("\n",$sql);
-
-foreach ($asql as $item){
-    $aout[] = "  ' ".$item." '";
+if(strstr($sql,'  g_SqlText := '))
+{
+    $asql = explode("\n",$sql);
+    foreach ($asql as $item)
+    {
+      $out = $item;  
+      $out = str_replace("  ' ",'',$out);
+      $out = str_replace(" ' + ",'',$out);
+      $out = str_replace("''","'",$out);  
+      $aout[] = $out;
+    }
+    array_shift($aout);
+    $sql = implode("\n",$aout);
 }
-$sql = "  g_SqlText := \n".implode(" + \n",$aout).";" ;
+else
+{
+    $obj = new SQLFormatter;
+    $sql = $obj->format($str,6);
+    $_POST['query'] = $sql;
+    $asql = explode("\n",$sql);
+
+    foreach ($asql as $item){
+        $aout[] = "  ' ".str_replace("'","''",$item)." '";
+    }
+    $sql = "  g_SqlText := \n".implode(" + \n",$aout).";" ;
+}
 //echo $out;
 /*
 //echo $sql;
