@@ -1,4 +1,10 @@
 <?php
+
+function object2array($object) { return @json_decode(@json_encode($object),1); }
+
+$_FILES['userfile']['tmp_name'] = 'TPL REL.xml';
+//echo file_get_contents($_FILES['userfile']['tmp_name']);
+//exit;
 if(isset($_FILES['userfile'])) 
 {
 //echo file_get_contents($_FILES['userfile']['tmp_name']);//print_r($_FILES);
@@ -9,21 +15,36 @@ $myXMLData = file_get_contents($_FILES['userfile']['tmp_name']);
 
 $myXMLData = str_replace('ss:','sss',$myXMLData);
 $xml=simplexml_load_string($myXMLData) or die("Error: Cannot create object");
-
+$axml = object2array($xml);
 //print_r($xml);
 //echo '---'."\r\n";
 $r = 0;
 $rr = 0;
 
 $code = <<<'CODE'
-  {var
+const
+  xlCenter = -4108;
+  xlRight = -4152;
+  xlLeft = -4131;
+  xlDown   = -4121;
+  xlEdgeLeft  = $00000007;
+  xlEdgeRight = $0000000A;
+  xlEdgeTop    = $00000008;
+  xlEdgeBottom = $00000009;
+  xlThin     = $00000002;
+  xlInsideHorizontal = $0000000C;
+  xlInsideVertical = $0000000B;
+  xlSolid = 1;
+
+var
   lQueryA, lQueryB : TADOQuery;  
   lTpRelatorio : string;
   i: Integer;
   lExcel, lSheets: Variant;
-  lLinha : Integer;}
-  
-  if f_Contido(lTpRelatorio, ['2']) then
+  lLinha : Integer;
+
+begin  
+  //if f_Contido(lTpRelatorio, ['2']) then
     begin
       //lQueryA := f_CreateADOQuery(FrDmGr.ADOSistema,1);
  
@@ -32,7 +53,6 @@ $code = <<<'CODE'
       lSheets := lExcel.WorkBooks[1].Sheets[1];
  
       //f_OpenQueryTrans(lQueryA, g_SqlText);
-
       try
         try
           lLinha := 1;
@@ -41,21 +61,53 @@ CODE;
 $dbg = '1';
 $log = '';
 $negritos = array();
+$bordas = array();
 while($xml->Styles->Style[$r] != null)
 {
   if($xml->Styles->Style[$r]->attributes()['sssID']){
-    $estiloId = $xml->Styles->Style[$r]->attributes()['sssID'];
+    $estiloId = trim($xml->Styles->Style[$r]->attributes()['sssID']);
     $bold = 0;
-    if(isset($xml->Styles->Style[$r]->Font->attributes()['sssBold']))
+    //echo '******';
+    //print_r($xml->Styles->Style[$r]->Font->attributes());
+    if(isset($xml->Styles->Style[$r]->Font) && isset($xml->Styles->Style[$r]->Font->attributes()['sssBold']))
     {
       $bold = $xml->Styles->Style[$r]->Font->attributes()['sssBold'];
     }
-  if($bold) $negritos[] = ''.$estiloId;
-  if($dbg)  $log .= '
-  verificando estilo ' . $estiloId . ' negrito: '.$bold;
+    if($bold) $negritos[] = $estiloId;
+    if($dbg)  $log .= '
+    verificando estilo ' . $estiloId . ' negrito: '.$bold;
+
+    if(isset($xml->Styles->Style[$r]->Borders) && isset($xml->Styles->Style[$r]->Borders[0]->Border))
+    {
+        $i = 0;
+        //
+        foreach($xml->Styles->Style[$r]->Borders[0]->Border as $xxx)
+        {
+            $borda = ($xml->Styles->Style[$r]->Borders[0]->Border[$i]->attributes()['sssPosition']); 
+            $bordas[$estiloId][$i] = $borda; 
+            $i++;
+            if($dbg)  $log .= '
+    verificando estilo ' . $estiloId . ' borda: '.$borda;
+        }         
+    }
+    if(isset($xml->Styles->Style[$r]->Interior))
+    {
+        $interior[$estiloId] = $xml->Styles->Style[$r]->Interior->attributes()['sssColor'];
+        if($dbg)  $log .= '    
+    verificando estilo ' . $estiloId . ' interior: '.$interior[$estiloId];    
+    }
+    if(isset($xml->Styles->Style[$r]->Alignment))
+    {
+        $alinhamento[$estiloId] = $xml->Styles->Style[$r]->Alignment->attributes()['sssHorizontal'];
+        if($dbg)  $log .= '    
+    verificando estilo ' . $estiloId . ' alinhamento: '.$alinhamento[$estiloId];    
+    }
+
   }
   $r++;
 }
+//print_r($bordas);
+//exit;
 //$log .= print_r($negritos,1);
 $r = 0;
 while($xml->Worksheet->Table->Row[$r] != null)
@@ -78,20 +130,69 @@ while($xml->Worksheet->Table->Row[$r] != null)
     if($merge){
       if($dbg) $log .= ('
       mesclando celulas '.$abc[$cc].($r+1).':'.$abc[($cc+$merge)].($r+1));
+      $mergeini = $abc[$cc];
+      $mergeend = $abc[($cc+$merge)];
       if($cdata) $code .='
-          //lExcel.Range[\''.$abc[$cc].'\'+IntToStr(lLinha),\''.$abc[($cc+$merge)].'\'+IntToStr(lLinha)].HorizontalAlignment := 3; //centralizar
-          lExcel.Range[\''.$abc[$cc].'\'+IntToStr(lLinha),\''.$abc[($cc+$merge)].'\'+IntToStr(lLinha)].MergeCells := True; //mesclar celulas
-          lExcel.Range[\''.$abc[$cc].'\'+IntToStr(lLinha),\''.$abc[($cc+$merge)].'\'+IntToStr(lLinha)].Font.Bold := True; //negritar';
+          lExcel.Range[\''.$abc[$cc].'\'+IntToStr(lLinha),\''.$abc[($cc+$merge)].'\'+IntToStr(lLinha)].MergeCells := True; //mesclar celulas';
       else $code .= '
           lExcel.Range[\''.$abc[$cc].'\'+IntToStr(lLinha),\''.$abc[($cc+$merge)].'\'+IntToStr(lLinha)].MergeCells := True; //mesclar celulas';
       $cc+=$merge;
     } 
-    $estilo =  $xml->Worksheet->Table->Row[$r]->Cell[$c]->attributes()['sssStyleID'];
+    $estilo =  trim($xml->Worksheet->Table->Row[$r]->Cell[$c]->attributes()['sssStyleID']);
     if($dbg) $log .= '
     aplicando estilo '. $estilo;
     if( in_array($estilo,$negritos)){
-      $code .= '
+        if($merge)
+        {
+          $code .= '
+          lExcel.Range[\''.$mergeini.'\'+IntToStr(lLinha),\''.$mergeend.'\'+IntToStr(lLinha)].Font.Bold := True;      ';
+        }
+        else
+          $code .= '
           lSheets.Cells[lLinha,'.($cc + 1).'].Font.Bold := True;      ';
+    }
+    if(isset($bordas[$estilo]))
+    {
+        foreach($bordas[$estilo] as $borda)
+        {
+          if($merge)
+          {
+          $code .= '
+          lExcel.Range[\''.$mergeini.'\'+IntToStr(lLinha),\''.$mergeend.'\'+IntToStr(lLinha)].Borders.Item[xlEdge'.$borda.'].Weight := xlThin; ';
+          }
+          else
+          $code .= '  
+          lSheets.Cells[lLinha,'.($cc + 1).'].Borders.Item[xlEdge'.$borda.'].Weight := xlThin; ';
+        }
+    }
+    if(isset($interior[$estilo]))
+    {
+        $hex = str_replace('#','',$interior[$estilo]);
+        $invhex = substr($hex,4,2).substr($hex,2,2).substr($hex,0,2);
+        //list($red, $green, $blue) = sscanf('#'.$hex, "#%02x%02x%02x");
+
+        if($merge)
+        {
+          $code .= '
+          lExcel.Range[\''.$mergeini.'\'+IntToStr(lLinha),\''.$mergeend.'\'+IntToStr(lLinha)].Interior.Color := $'.$invhex.'; ';
+        }
+        else
+          $code .= '            
+          lSheets.Cells[lLinha,'.($cc + 1).'].Interior.Color := $'.$invhex.'; ';
+          //lSheets.Cells[lLinha,'.($cc + 1).'].Interior.Pattern := xlSolid ;
+          //lSheets.Cells[lLinha,'.($cc + 1).'].Interior.PatternColor := RGB('."$red,$green,$blue".'); ';
+    }
+    if(isset($alinhamento[$estilo]))
+    {
+
+        if($merge)
+        {
+          $code .= '    
+          lExcel.Range[\''.$mergeini.'\'+IntToStr(lLinha),\''.$mergeend.'\'+IntToStr(lLinha)].HorizontalAlignment := xl'.$alinhamento[$estilo].'; ';
+        }
+        else
+          $code .= '  
+          lSheets.Cells[lLinha,'.($cc + 1).'].HorizontalAlignment := xl'.$alinhamento[$estilo].'; ';
     }
     $c++;
     $cc++;
@@ -124,8 +225,10 @@ $code .= <<<'CODE'
         g_Abort := True;
       end;
     end;
- 
+end. 
 CODE;
+
+
 ?>
 <label>Código:</label>
 <textarea id="result" style="width:100%; height:600px;font-family:Courier New"><?php echo $code; ?></textarea>
@@ -214,4 +317,4 @@ file.addEventListener('change', function() {
 	//alert(val)
 });
 }
-</script>  
+</script> 
