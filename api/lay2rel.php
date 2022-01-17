@@ -26,7 +26,7 @@ $arr = null;
 }
 
 if(isset($ncode)) { ?>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <label>CAMPOS ENCONTRADOS:</label>
 <textarea id="result" style="width:100%; height:600px;font-family:Courier New"><?php echo $ncode; ?></textarea>
 <input type="button" value="COPIAR" onclick="jQuery('#result').select();document.execCommand('copy');">
