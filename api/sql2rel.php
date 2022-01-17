@@ -91,7 +91,7 @@ class SQLFormatter {
       function($str) use($tab, $sep) { return preg_replace('/ OVER /i',             $sep . $tab . 'OVER ', $str); },
       function($str) use($tab, $sep) { return preg_replace('/\(\s*SELECT /i',       $sep . '(SELECT ', $str); },
       function($str) use($tab, $sep) { return preg_replace('/\)\s*SELECT /i',       ')' . $sep . 'SELECT ', $str); },
-      function($str) use($tab, $sep) { return preg_replace('/ THEN /i',             ' THEN' . $sep . $tab, $str); },
+      //function($str) use($tab, $sep) { return preg_replace('/ THEN /i',             ' THEN' . $sep . $tab, $str); },
       function($str) use($tab, $sep) { return preg_replace('/ UNION /i',            $sep . 'UNION' . $sep, $str); },
       function($str) use($tab, $sep) { return preg_replace('/ USING /i',            $sep . 'USING ', $str); },
       function($str) use($tab, $sep) { return preg_replace('/ WHEN /i',             $sep . $tab . 'WHEN ', $str); },
