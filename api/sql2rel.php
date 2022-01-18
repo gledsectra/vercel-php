@@ -156,8 +156,8 @@ else
     $asql = explode("\n",$sql);
 
     foreach ($asql as $item){
-        $item = "  ' ".$item." '";
-        $item = str_replace("'","''",$item);        
+        $item = str_replace("'","''",$item);   
+        $item = "  ' ".$item." '";            
         $item = str_replace('  \'             ','  \'         ',$item);
         $item = str_replace(',',"' + ', ",$item);
         $aout[] = $item;
