@@ -159,7 +159,7 @@ else
         $item = str_replace("'","''",$item);   
         $item = "  ' ".$item." '";            
         $item = str_replace('  \'             ','  \'         ',$item);
-        $item = str_replace(',',"' + ',",$item);
+        $item = str_replace(','," ' + ',",$item);
         $aout[] = $item;
     }
     $sql = "  g_SqlText := \n".implode(" + \n",$aout).";" ;
