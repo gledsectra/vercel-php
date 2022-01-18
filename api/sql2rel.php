@@ -156,7 +156,11 @@ else
     $asql = explode("\n",$sql);
 
     foreach ($asql as $item){
-        $aout[] = "  ' ".str_replace("'","''",$item)." '";
+        $item = "  ' ".$item." '";
+        $item = str_replace("'","''",$item);        
+        $item = str_replace('  \'             ','  \'         ',$item);
+        $item = str_replace(',',"' + ', ",$item);
+        $aout[] = $item;
     }
     $sql = "  g_SqlText := \n".implode(" + \n",$aout).";" ;
 }
