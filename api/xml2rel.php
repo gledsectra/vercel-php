@@ -49,44 +49,111 @@ const
 
 var
   lQueryA, lQueryB: TADOQuery;  
-  lExcel, lSheets: Variant;
-  i, lLinha: Integer;
-  lTpRelatorio: string;
+  lVetorSistema, lExcel, lSheets: Variant;
+  OpenOffice, lSheet, OpenDesktop, Calc : Variant;
+  i, lLinha, lAlinhamento: Integer;
+  lTpRelatorio, lOle, lTitulo: string;
 
-procedure f_Setar(pSheet: Variant; pColunaIni, pColunaFim: String; pLinha: Integer; pValor: Variant);
+function IsNumber(N : String) : Boolean;
+  var
+  I : Integer;
   begin
-    pSheet.Range[pColunaIni+IntToStr(pLinha), pColunaFim+IntToStr(pLinha)] := pValor; 
+    N := f_strTrocaTexto(N,'.','');
+    Result := True;
+    if Trim(N) = '' then
+      Result := False;
+
+    if (Length(Trim(N)) > 1) and (Trim(N)[1] = '0') then
+      Result := False;
+
+    for I := 1 to Length(N) do
+    begin
+     if not (N[I] in ['0'..'9']) then
+       begin
+         Result := False;
+         Break;
+       end;
+    end;
+  end;
+
+  procedure f_Setar(pSheet: Variant; pColunaIni, pColunaFim: String; pLinha: Integer; pValor: Variant);
+  begin
+    if lOle = 'Excel' then
+      pSheet.Range[pColunaIni+IntToStr(pLinha), pColunaFim+IntToStr(pLinha)] := pValor
+    else
+      begin
+        if IsNumber(f_strTrocaTexto(VarToStr(pValor),',','.')) then
+          pSheet.getCellRangeByName(pColunaIni+IntToStr(pLinha)+':'+pColunaFim+IntToStr(pLinha)).setValue(VarToStr(pValor))
+          else pSheet.getCellRangeByName(pColunaIni+IntToStr(pLinha)+':'+pColunaFim+IntToStr(pLinha)).setString(VarToStr(pValor));
+      end;    
   end;
 
 procedure f_Mesclar(pSheet: Variant; pColunaIni, pColunaFim: String; pLinha: Integer);
   begin
-    pSheet.Range[pColunaIni+IntToStr(pLinha), pColunaFim+IntToStr(pLinha)].MergeCells := True;
+    if lOle = 'Excel' then
+      pSheet.Range[pColunaIni+IntToStr(pLinha), pColunaFim+IntToStr(pLinha)].MergeCells := True
+    else
+      pSheet.getCellRangeByName(pColunaIni+IntToStr(pLinha)+':'+pColunaFim+IntToStr(pLinha)).Merge(True);
   end;
 
 procedure f_Negritar(pSheet: Variant; pColunaIni, pColunaFim: String; pLinha: Integer);
   begin
-    pSheet.Range[pColunaIni+IntToStr(pLinha), pColunaFim+IntToStr(pLinha)].Font.Bold := True;
+    if lOle = 'Excel' then
+      pSheet.Range[pColunaIni+IntToStr(pLinha), pColunaFim+IntToStr(pLinha)].Font.Bold := True
+    else
+      pSheet.getCellRangeByName(pColunaIni+IntToStr(pLinha)+':'+pColunaFim+IntToStr(pLinha)).CharWeight := 150;
   end;
 
 procedure f_Alinhar(pSheet: Variant; pColunaIni, pColunaFim: String; pLinha: Integer; pAlinhamento: Variant);
   begin
-    pSheet.Range[pColunaIni+IntToStr(pLinha), pColunaFim+IntToStr(pLinha)].HorizontalAlignment := pAlinhamento; //ex: cCenter
+    if pAlinhamento = cLeft then lAlinhamento := 1
+    else if pAlinhamento = cCenter then lAlinhamento := 2
+    else if pAlinhamento = cRight then lAlinhamento := 3;
+
+    if lOle = 'Excel' then
+      pSheet.Range[pColunaIni+IntToStr(pLinha), pColunaFim+IntToStr(pLinha)].HorizontalAlignment := pAlinhamento //ex: cCenter
+    else
+      pSheet.getCellRangeByName(pColunaIni+IntToStr(pLinha)+':'+pColunaFim+IntToStr(pLinha)).HoriJustify := lAlinhamento;
   end;
 
-procedure f_Interior(pSheet: Variant; pColunaIni, pColunaFim: String; pLinha: Integer; pCor: Variant);
+procedure f_Interior(pSheet: Variant; pColunaIni, pColunaFim: String; pLinha: Integer; pCorInv, pCor: Variant);
   begin
-    pSheet.Range[pColunaIni+IntToStr(pLinha), pColunaFim+IntToStr(pLinha)].Interior.Color := pCor; 
-  end;  
+    if lOle = 'Excel' then
+      pSheet.Range[pColunaIni+IntToStr(pLinha), pColunaFim+IntToStr(pLinha)].Interior.Color := pCorInv
+    else
+      pSheet.getCellRangeByName(pColunaIni+IntToStr(pLinha)+':'+pColunaFim+IntToStr(pLinha)).CellBackColor := pCor;
+  end;
 
 procedure f_SetarBorda(pSheet: Variant; pColunaIni, pColunaFim: String; pLinha: Integer; pAlinhamento, pEstilo, pEspessura: Variant);
   begin
-    // Format. Contorno // cContinuous / cDot / cDashDot / cDashDotDot / cDash / cSlantDashDot / cDouble / cLineStyleNone
-    // Format. Espessura // cThin / cMedium / cThick
-    pSheet.Range[pColunaIni+IntToStr(pLinha), pColunaFim+IntToStr(pLinha)].Borders.Item[pAlinhamento].LineStyle := pEstilo;
-    pSheet.Range[pColunaIni+IntToStr(pLinha), pColunaFim+IntToStr(pLinha)].Borders.Item[pAlinhamento].Weight := pEspessura;
+    if lOle = 'Excel' then
+      begin
+        // Format. Contorno // cContinuous / cDot / cDashDot / cDashDotDot / cDash / cSlantDashDot / cDouble / cLineStyleNone
+        // Format. Espessura // cThin / cMedium / cThick
+        pSheet.Range[pColunaIni+IntToStr(pLinha), pColunaFim+IntToStr(pLinha)].Borders.Item[pAlinhamento].LineStyle := pEstilo;
+        pSheet.Range[pColunaIni+IntToStr(pLinha), pColunaFim+IntToStr(pLinha)].Borders.Item[pAlinhamento].Weight := pEspessura;
+      end
+    else
+      begin
+        if pAlinhamento = cEdgeBottom then pSheet.getCellRangeByName(pColunaIni+IntToStr(pLinha)+':'+pColunaFim+IntToStr(pLinha)).BottomBorder := F_OPENOFFICESETARBORDA(OpenOffice, 1, 0, 0, 0);
+        if pAlinhamento = cEdgeTop then pSheet.getCellRangeByName(pColunaIni+IntToStr(pLinha)+':'+pColunaFim+IntToStr(pLinha)).TopBorder := F_OPENOFFICESETARBORDA(OpenOffice, 1, 0, 0, 0);
+        if pAlinhamento = cEdgeLeft then pSheet.getCellRangeByName(pColunaIni+IntToStr(pLinha)+':'+pColunaFim+IntToStr(pLinha)).LeftBorder := F_OPENOFFICESETARBORDA(OpenOffice, 1, 0, 0, 0);
+        if pAlinhamento = cEdgeRight then pSheet.getCellRangeByName(pColunaIni+IntToStr(pLinha)+':'+pColunaFim+IntToStr(pLinha)).RightBorder := F_OPENOFFICESETARBORDA(OpenOffice, 1, 0, 0, 0);
+      end;
+  end;
+
+procedure f_Dinheiro(pSheet: Variant; pColunaIni, pColunaFim: String; pLinha: Integer; pSifrao: String);
+  begin
+    if not Empty(pSifrao) then pSifrao := pSifrao + ' ';                                                                                                                                  
+    if lOle = 'Excel' then
+      pSheet.Range[pColunaIni+IntToStr(pLinha), pColunaFim+IntToStr(pLinha)].NumberFormat := pSifrao+'###.##0,00'
+    else
+      pSheet.getCellRangeByName(pColunaIni+IntToStr(pLinha)+':'+pColunaFim+IntToStr(pLinha)).NumberFormat := 2;
   end;  
 
 begin 
+  lOle := 'Excel';
+  lTitulo := FrGeradorV2.Relatorios.FieldByName('DESCRICAO').AsString;
 
   lVetorSistema :=
     VarArrayOf([
@@ -106,19 +173,30 @@ begin
 
   lTpRelatorio := f_ExtractValue(lVetorSistema[0]);
 
-  {
-    Titulo := FrGeradorV2.Relatorios.FieldByName('DESCRICAO').AsString;
-    (...).NumberFormat := 'R$ ###.##0,00';
-    lSheets.Columns('B:B').ColumnWidth := 13.15;
-  }
+  // lSheet.Columns('B:B').ColumnWidth := 13.15; //open office
 
-  if f_Contido(lTpRelatorio, ['2']) then
+  if f_Contido(lTpRelatorio, ['2','3']) then
     begin
       //lQueryA := f_CreateADOQuery(FrDmGr.ADOSistema,1);
- 
-      lExcel := CreateOleObject('Excel.Application');
-      lExcel.Workbooks.Add;
-      lSheets := lExcel.WorkBooks[1].Sheets[1];
+       
+      try
+        lExcel := CreateOleObject('Excel.Application');
+        lExcel.Workbooks.Add;
+        lSheet := lExcel.WorkBooks[1].Sheets[1];
+      except
+        try
+          OpenOffice  := CreateOleObject('com.sun.star.ServiceManager');
+          OpenDesktop := OpenOffice.CreateInstance('com.sun.star.frame.Desktop');
+          Calc        := OpenDesktop.LoadComponentFromURL('private:factory/scalc', '_blank', 0, VarArrayCreate([0, - 1], varVariant));
+          lSheets     := Calc.Sheets;
+          lSheet      := lSheets.getByIndex(0);
+          lOle        := 'OpenOffice';
+        except
+          f_Mensagem(['Não foi possível gerar a planilha do excel! Provavelmente o Excel ou Open Office não estão instalados!'], 0);
+          g_Abort := True;
+          Exit;
+        end;
+      end;
 
       try
         //f_OpenQueryTrans(lQueryA, g_SqlText);
@@ -192,8 +270,7 @@ while($xml->Worksheet->Table->Row[$r] != null)
       if($dbg)  $log .= ('
     processando coluna '.$abc[$cc]. ' = ' . $cdata);
       $code .= '
-          f_Setar(lSheets, \''.$abc[$cc].'\', \''.$abc[$cc].'\', lLinha, \''.$cdata.'\');'; 
-          //lSheets.Cells[lLinha,'.($cc + 1).'] := \''.$cdata.'\';';
+          f_Setar(lSheet, \''.$abc[$cc].'\', \''.$abc[$cc].'\', lLinha, \''.$cdata.'\');';           
     }
     $merge = $xml->Worksheet->Table->Row[$r]->Cell[$c]->attributes()['sssMergeAcross'];
     if($merge){
@@ -202,7 +279,7 @@ while($xml->Worksheet->Table->Row[$r] != null)
       $mergeini = $abc[$cc];
       $mergeend = $abc[($cc+$merge)];
       $code .='
-          f_Mesclar(lSheets, \''.$mergeini.'\', \''.$mergeend.'\', lLinha);';
+          f_Mesclar(lSheet, \''.$mergeini.'\', \''.$mergeend.'\', lLinha);';
       $cc+=$merge;
     } 
     else $mergeini = $mergeend = $abc[$cc];
@@ -211,13 +288,13 @@ while($xml->Worksheet->Table->Row[$r] != null)
     aplicando estilo '. $estilo;
     if( in_array($estilo,$negritos)){       
           $code .= '
-          f_Negritar(lSheets, \''.$mergeini.'\', \''.$mergeend.'\', lLinha);';
+          f_Negritar(lSheet, \''.$mergeini.'\', \''.$mergeend.'\', lLinha);';
     }
     if(isset($bordas[$estilo]))    {
         foreach($bordas[$estilo] as $borda)
         {       
           $code .= '
-          f_SetarBorda(lSheets, \''.$mergeini.'\', \''.$mergeend.'\', lLinha, cEdge'.$borda.', cContinuous, cThin);';          
+          f_SetarBorda(lSheet, \''.$mergeini.'\', \''.$mergeend.'\', lLinha, cEdge'.$borda.', cContinuous, cThin);';          
         }
     }
     if(isset($interior[$estilo]))    {
@@ -226,11 +303,11 @@ while($xml->Worksheet->Table->Row[$r] != null)
         //list($red, $green, $blue) = sscanf('#'.$hex, "#%02x%02x%02x");
        
         $code .= '
-          f_Interior(lSheets, \''.$mergeini.'\', \''.$mergeend.'\', lLinha, $'.$invhex.');';           
+          f_Interior(lSheet, \''.$mergeini.'\', \''.$mergeend.'\', lLinha, $'.$invhex.', $'.$hex.');';           
     }
     if(isset($alinhamento[$estilo]))    {
           $code .= '  
-          f_Alinhar(lSheets, \''.$mergeini.'\', \''.$mergeend.'\', lLinha, c'.$alinhamento[$estilo].');';           
+          f_Alinhar(lSheet, \''.$mergeini.'\', \''.$mergeend.'\', lLinha, c'.$alinhamento[$estilo].');';           
     }
     $c++;
     $cc++;
@@ -257,8 +334,14 @@ $code .= <<<'CODE'
       finally
         //lQueryA.Free;
         //lQueryB.Free;
-        lExcel.Columns.AutoFit;
-        lExcel.Visible := True;
+        if lOle = 'Excel' then
+          begin
+            lExcel.Columns.AutoFit;
+            lExcel.Visible := True;
+          end
+        else
+          lSheet.getColumns.OptimalWidth := True;
+        
         if lTpRelatorio = '2' then
         g_Abort := True;
       end;
