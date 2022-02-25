@@ -76,7 +76,7 @@ function IsNumber(N : String) : Boolean;
     end;
   end;
 
-  procedure f_Setar(pSheet: Variant; pColunaIni, pColunaFim: String; pLinha: Integer; pValor: Variant);
+procedure f_Setar(pSheet: Variant; pColunaIni, pColunaFim: String; pLinha: Integer; pValor: Variant);
   begin
     if lOle = 'Excel' then
       pSheet.Range[pColunaIni+IntToStr(pLinha), pColunaFim+IntToStr(pLinha)] := pValor
@@ -87,6 +87,14 @@ function IsNumber(N : String) : Boolean;
           else pSheet.getCellRangeByName(pColunaIni+IntToStr(pLinha)+':'+pColunaFim+IntToStr(pLinha)).setString(VarToStr(pValor));
       end;    
   end;
+  
+procedure f_SetarLargura(pSheet: Variant; pColunaIni, pColunaFim: String; pLinha: Integer; pLargura: Variant);
+  begin
+    if lOle = 'Excel' then
+      pSheet.Range[pColunaIni+IntToStr(pLinha), pColunaFim+IntToStr(pLinha)].ColumnWidth := pLargura  
+    else
+      pSheet.getCellRangeByName(pColunaIni+IntToStr(pLinha)+':'+pColunaFim+IntToStr(pLinha)).ColumnWidth := pLargura;
+  end;   
 
 procedure f_Mesclar(pSheet: Variant; pColunaIni, pColunaFim: String; pLinha: Integer);
   begin
@@ -172,8 +180,6 @@ begin
     end;
 
   lTpRelatorio := f_ExtractValue(lVetorSistema[0]);
-
-  // lSheet.Columns('B:B').ColumnWidth := 13.15; //open office
 
   if f_Contido(lTpRelatorio, ['2','3']) then
     begin
