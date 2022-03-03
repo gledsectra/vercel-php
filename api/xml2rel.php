@@ -52,7 +52,8 @@ var
   lVetorSistema, lExcel, lSheets: Variant;
   OpenOffice, lSheet, OpenDesktop, Calc : Variant;
   i, lLinha, lAlinhamento: Integer;
-  lTpRelatorio, lOle, lTitulo: string;
+  lTpRelatorio, lOle, lTitulo, R1, R2: string;
+  lscProgress: TscProgress;
 
 function IsNumber(N : String) : Boolean;
   var
@@ -160,6 +161,7 @@ procedure f_Dinheiro(pSheet: Variant; pColunaIni, pColunaFim: String; pLinha: In
   end;  
 
 begin 
+  //lscProgress := TscProgress.Create(Application, 'Gerando Relatório');
   lOle := 'Excel';
   lTitulo := FrGeradorV2.Relatorios.FieldByName('DESCRICAO').AsString;
 
@@ -180,6 +182,8 @@ begin
     end;
 
   lTpRelatorio := f_ExtractValue(lVetorSistema[0]);
+
+  //g_SqlText = '';
 
   if f_Contido(lTpRelatorio, ['2','3']) then
     begin
@@ -210,6 +214,13 @@ begin
           //if lQueryA.RecordCount = 0 then Exit;
  
           lLinha := 1;
+
+          //lscProgress.Max := lQueryA.recordcount;
+
+          //while not lQueryA.Eof do
+            begin
+
+              //lscProgress.Inc;
 
 CODE;
 $dbg = '1';
@@ -262,6 +273,8 @@ while($xml->Styles->Style[$r] != null)
 //exit;
 //$log .= print_r($negritos,1);
 $r = 0;
+$R1old = '';
+$R2old = '';
 while($xml->Worksheet->Table->Row[$r] != null)
 {
   $c = 0;
@@ -270,37 +283,49 @@ while($xml->Worksheet->Table->Row[$r] != null)
   if($dbg) $log .= ('
   processando linha '.($rr + 1));
   while($xml->Worksheet->Table->Row[$r]->Cell[$c] != null){
-    if($xml->Worksheet->Table->Row[$r]->Cell[$c]->attributes()['sssIndex']) $cc = $xml->Worksheet->Table->Row[$r]->Cell[$c]->attributes()['sssIndex'][0] - 1;
+    if($xml->Worksheet->Table->Row[$r]->Cell[$c]->attributes()['sssIndex']) 
+      $cc = $xml->Worksheet->Table->Row[$r]->Cell[$c]->attributes()['sssIndex'][0] - 1;
+    
+    $R1 = $R2 = $abc[$cc];  
     $cdata = $xml->Worksheet->Table->Row[$r]->Cell[$c]->Data;
     if($cdata) {
       if($dbg)  $log .= ('
     processando coluna '.$abc[$cc]. ' = ' . $cdata);
+      if($R1 != $R1old) 
+        $code .= '
+              R1:=\''.$R1.'\'; R2:=R1; ';
       $code .= '
-          f_Setar(lSheet, \''.$abc[$cc].'\', \''.$abc[$cc].'\', lLinha, \''.$cdata.'\');';           
+              f_Setar(lSheet, R1, R2, lLinha, \''.$cdata.'\');';           
     }
     $merge = $xml->Worksheet->Table->Row[$r]->Cell[$c]->attributes()['sssMergeAcross'];
     if($merge){
       if($dbg) $log .= ('
       mesclando celulas '.$abc[$cc].($r+1).':'.$abc[($cc+$merge)].($r+1));
-      $mergeini = $abc[$cc];
-      $mergeend = $abc[($cc+$merge)];
+      $R1 = $abc[$cc];
+      $R2 = $abc[($cc+$merge)];
+      if (($R1 != $R1old) || ($R2 != $R2old)){
+        if($R1 == $R2) $code .= '
+              R1:=\''.$R1.'\'; R2:=R1;';  
+        else $code .= '
+              R1:=\''.$R1.'\'; R2:=\''.$R2.'\';';
+      }
       $code .='
-          f_Mesclar(lSheet, \''.$mergeini.'\', \''.$mergeend.'\', lLinha);';
+              f_Mesclar(lSheet, R1, R2, lLinha);';
       $cc+=$merge;
     } 
-    else $mergeini = $mergeend = $abc[$cc];
+    //else $R1 = $R2 = $abc[$cc];
     $estilo =  trim($xml->Worksheet->Table->Row[$r]->Cell[$c]->attributes()['sssStyleID']);
     if($dbg) $log .= '
     aplicando estilo '. $estilo;
     if( in_array($estilo,$negritos)){       
           $code .= '
-          f_Negritar(lSheet, \''.$mergeini.'\', \''.$mergeend.'\', lLinha);';
+              f_Negritar(lSheet, R1, R2, lLinha);';
     }
     if(isset($bordas[$estilo]))    {
         foreach($bordas[$estilo] as $borda)
         {       
           $code .= '
-          f_SetarBorda(lSheet, \''.$mergeini.'\', \''.$mergeend.'\', lLinha, cEdge'.$borda.', cContinuous, cThin);';          
+              f_SetarBorda(lSheet, R1, R2, lLinha, cEdge'.$borda.', cContinuous, cThin);';          
         }
     }
     if(isset($interior[$estilo]))    {
@@ -309,29 +334,28 @@ while($xml->Worksheet->Table->Row[$r] != null)
         //list($red, $green, $blue) = sscanf('#'.$hex, "#%02x%02x%02x");
        
         $code .= '
-          f_Interior(lSheet, \''.$mergeini.'\', \''.$mergeend.'\', lLinha, $'.$invhex.', $'.$hex.');';           
+              f_Interior(lSheet, R1, R2, lLinha, $'.$invhex.', $'.$hex.');';           
     }
     if(isset($alinhamento[$estilo]))    {
           $code .= '  
-          f_Alinhar(lSheet, \''.$mergeini.'\', \''.$mergeend.'\', lLinha, c'.$alinhamento[$estilo].');';           
+              f_Alinhar(lSheet, R1, R2, lLinha, c'.$alinhamento[$estilo].');';           
     }
+    $R1old = $R1;
+    $R2old = $R2;
     $c++;
     $cc++;
   }
   $r++;
   $rr++;
   $code .= "
-          inc(lLinha,1);
+              inc(lLinha,1);
   ";
 }
 
 $code .= <<<'CODE'
-      
-          {while not lQueryA.Eof do
-            begin
-            ...
-            lQueryA.Next;
-            end;}
+            
+              //lQueryA.Next;
+            end;
         except
           g_Abort := True;
           f_Mensagem([ExceptionMessage],0);
@@ -349,7 +373,10 @@ $code .= <<<'CODE'
           lSheet.getColumns.OptimalWidth := True;
         
         if lTpRelatorio = '2' then
-        g_Abort := True;
+          g_Abort := True;
+
+        g_Filtro := '';  
+        //lscProgress.Free; 
       end;
     end;
 end. 
