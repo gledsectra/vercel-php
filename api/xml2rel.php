@@ -90,12 +90,20 @@ procedure f_Setar(pSheet: Variant; pColunaIni, pColunaFim: String; pLinha: Integ
   end;
   
 procedure f_SetarLargura(pSheet: Variant; pColunaIni, pColunaFim: String; pLinha: Integer; pLargura: Variant);
+var I, R1, R2: Integer;
   begin
     if lOle = 'Excel' then
-      pSheet.Range[pColunaIni+IntToStr(pLinha), pColunaFim+IntToStr(pLinha)].ColumnWidth := pLargura  
+      pSheet.Range[pColunaIni+IntToStr(pLinha), pColunaFim+IntToStr(pLinha)].ColumnWidth := pLargura
     else
-      pSheet.getCellRangeByName(pColunaIni+IntToStr(pLinha)+':'+pColunaFim+IntToStr(pLinha)).ColumnWidth := pLargura;
-  end;   
+      begin
+        R1 := Pos(pColunaIni,'ABCDEFGHIJKLMNOPQRSTUVWXYZ')-1;
+        R2 := Pos(pColunaFim,'ABCDEFGHIJKLMNOPQRSTUVWXYZ')-1;
+        for I := R1 to R2 do
+          begin
+            pSheet.getColumns.getByIndex(I).Width := pLargura*300;
+          end;
+      end;
+  end; 
 
 procedure f_Mesclar(pSheet: Variant; pColunaIni, pColunaFim: String; pLinha: Integer);
   begin
