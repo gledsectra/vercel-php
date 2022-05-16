@@ -77,6 +77,29 @@ function IsNumber(N : String) : Boolean;
     end;
   end;
 
+//numero para letra
+function AlphaBase(num : integer) : string;
+var
+  a, b : integer;
+begin
+  a := (num-1) div 26;
+  b := (num-1) mod 26;
+  if a = 0 then
+    result := chr(b + 65)
+  else
+    result := chr(a + 64) + chr(b + 65);
+end;  
+
+function f_Get(pSheet: Variant; pColunaIni, pColunaFim: String; pLinha: Integer) : string;
+  begin
+    if lOle = 'Excel' then
+      result := VarToStr(pSheet.Range[pColunaIni+IntToStr(pLinha), pColunaFim+IntToStr(pLinha)].Value)
+    else
+      begin
+        result :=  VarToStr(pSheet.getCellRangeByName(pColunaIni+IntToStr(pLinha)+':'+pColunaFim+IntToStr(pLinha)).getString);
+      end;
+  end;
+
 procedure f_Setar(pSheet: Variant; pColunaIni, pColunaFim: String; pLinha: Integer; pValor: Variant);
   begin
     if lOle = 'Excel' then
