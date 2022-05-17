@@ -212,8 +212,9 @@ begin
 
   lTpRelatorio := f_ExtractValue(lVetorSistema[0]);
 
-  //g_SqlText = '';
-  //g_SqlText := f_SqlPrepare(g_SqlText, g_Filtro, lOrderBy);
+  //g_SqlText := '';
+  //g_SqlText := f_SqlPrepare(g_SqlText, g_Filtro, g_Ordem);
+  //showmessage(g_SqlText);
 
   if f_Contido(lTpRelatorio, ['2','3']) then
     begin
