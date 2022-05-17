@@ -192,9 +192,7 @@ procedure f_Dinheiro(pSheet: Variant; pColunaIni, pColunaFim: String; pLinha: In
   end;  
 
 begin 
-  //lscProgress := TscProgress.Create(Application, 'Gerando Relatório');
   lOle := 'Excel';
-  lTitulo := FrGeradorV2.Relatorios.FieldByName('DESCRICAO').AsString;
 
   lVetorSistema :=
     VarArrayOf([
@@ -215,6 +213,7 @@ begin
   lTpRelatorio := f_ExtractValue(lVetorSistema[0]);
 
   //g_SqlText = '';
+  //g_SqlText := f_SqlPrepare(g_SqlText, g_Filtro, lOrderBy);
 
   if f_Contido(lTpRelatorio, ['2','3']) then
     begin
@@ -240,6 +239,8 @@ begin
       end;
 
       try
+        lTitulo := FrGeradorV2.Relatorios.FieldByName('DESCRICAO').AsString;
+        //lscProgress := TscProgress.Create(Application, 'Gerando Relatório');
         //f_OpenQueryTrans(lQueryA, g_SqlText);
         try
           //if lQueryA.RecordCount = 0 then Exit;
@@ -250,8 +251,8 @@ begin
 
           //while not lQueryA.Eof do
             begin
-
               //lscProgress.Inc;
+	      //lQueryA.FieldByName('').AsString;	      
 
 CODE;
 $dbg = '1';
