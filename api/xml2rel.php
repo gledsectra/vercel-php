@@ -51,7 +51,7 @@ var
   lQueryA, lQueryB: TADOQuery;  
   lVetorSistema, lExcel, lSheets: Variant;
   OpenOffice, lSheet, OpenDesktop, Calc : Variant;
-  i, lLinha, lAlinhamento: Integer;
+  i, lLinha, lAlinhamento, lCur: Integer;
   lTpRelatorio, lOle, lTitulo, R1, R2: string;
   lscProgress: TscProgress;
 
@@ -216,10 +216,8 @@ begin
   //g_SqlText := f_SqlPrepare(g_SqlText, g_Filtro, g_Ordem);
   //showmessage(g_SqlText);
 
-  if f_Contido(lTpRelatorio, ['2','3']) then
-    begin
-      //lQueryA := f_CreateADOQuery(FrDmGr.ADOSistema,1);
-       
+  //if f_Contido(lTpRelatorio, ['2','3']) then
+    begin      
       try
         lExcel := CreateOleObject('Excel.Application');
         lExcel.Workbooks.Add;
@@ -238,9 +236,11 @@ begin
           Exit;
         end;
       end;
-
+      
+      //lQueryA := f_CreateADOQuery(FrDmGr.ADOSistema,1);      
       try
         lTitulo := FrGeradorV2.Relatorios.FieldByName('DESCRICAO').AsString;
+	inc(lCur);
         //lscProgress := TscProgress.Create(Application, 'Gerando Relatório');
         //f_OpenQueryTrans(lQueryA, g_SqlText);
         try
